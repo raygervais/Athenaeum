@@ -29,7 +29,6 @@ _testmain.go
 /misc/cgo/stdio/run.out
 /misc/cgo/testso/main
 /pkg/
-/src/*.*/
 /src/cmd/cgo/zdefaultcc.go
 /src/cmd/dist/dist
 /src/cmd/go/internal/cfg/zdefaultcc.go
