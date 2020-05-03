@@ -1,5 +1,7 @@
 # Athenaeum Backend
 
+![Backend Build Status](https://github.com/raygervais/Athenaeum/workflows/Go/badge.svg)
+
 ## Onboarding and Setup
 
 - Stack: Golang 1.14
