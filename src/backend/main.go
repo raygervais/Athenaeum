@@ -17,5 +17,11 @@ func SetupRouter() *gin.Engine {
 		})
 	})
 
+    router.GET("/secret", func(c *gin.Context) {
+        c.JSON(200, gin.H{
+            "message": "May the 4th be with you!"
+        })
+    })
+
 	return router
 }
