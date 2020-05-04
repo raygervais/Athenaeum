@@ -1,0 +1,7 @@
+golint:
+    enabled: true
+
+esling:
+    enabled: true
+
+fail_on_violations: true

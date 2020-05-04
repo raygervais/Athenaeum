@@ -30,7 +30,7 @@ WORKDIR /dist
 RUN cp /build/main .
 
 # Build a small image
-FROM alpine
+FROM alpine:3.11
 
 COPY --from=builder /dist/main /
 EXPOSE 3000
