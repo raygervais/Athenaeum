@@ -1,5 +1,5 @@
 
 # Commit Format
-# One of the following prefixes: [adds, fixes, removes, updates, reverts]
+# One of the following prefixes: [adds, fixes, removes, reverts]
 # Followed by a (max) 50-character subject line
 # Example: `adds: new commit format`
