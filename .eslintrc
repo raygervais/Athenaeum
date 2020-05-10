@@ -1,0 +1,31 @@
+{
+  "env": {
+    "commonjs": true,
+    "es6": true,
+    "node": true
+  },
+  "extends": ["eslint:recommended", "plugin:prettier/recommended"],
+  
+  "parserOptions": {
+    "ecmaVersion": 2020
+  },
+  "rules": {
+    "no-console": "error",
+    "require-atomic-updates": "error",
+    "default-case": "error",
+    "default-case-last" : "error",
+    "default-param-last": "error",
+    "require-await": "error",
+    "camelcase": ["error", {
+      "properties": "never" 
+    }],
+    "comma-dangle": ["error", {
+      "arrays": "always",
+      "objects": "always"
+    }],
+    "comma-spacing": ["error", {
+      "before": false, "after": true 
+    }],
+    "quotes": ["error", "double"]
+  }
+}
