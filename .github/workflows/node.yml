@@ -13,7 +13,7 @@ jobs:
     defaults:
       run:
         shell: bash
-        working-directory: src/backend
+        working-directory: src/frontend
 
     strategy:
       matrix:
