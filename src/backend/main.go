@@ -1,6 +1,10 @@
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+	"Golang/Athenaeum/src/backend/controllers"
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
 	router := SetupRouter()
@@ -16,6 +20,9 @@ func SetupRouter() *gin.Engine {
 			"message": "Hello, World!",
 		})
 	})
+
+	router.GET("/book/", controllers.GetBooks)
+	router.GET("/book/:id", controllers.GetBook)
 
 	return router
 }
