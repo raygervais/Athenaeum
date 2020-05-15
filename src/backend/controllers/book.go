@@ -1,14 +1,14 @@
+/*
+Package controllers/books implements Book object CRUD patterns.
+*/
+
 package controllers
 
 import (
 	"errors"
-	"fmt"
-	"net/http"
-	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
 
+// Book struct for Milestone 2, to be replaced with far grander models
 type Book struct {
 	ID      int    `json:"id"`
 	Name    string `json:"name"`
@@ -16,6 +16,8 @@ type Book struct {
 }
 
 // TODO: Development Mock DB
+
+// GenerateSampleBooks returns an array of predefined Books for testing usecases.
 func GenerateSampleBooks() []Book {
 	return []Book{
 		{
@@ -31,32 +33,22 @@ func GenerateSampleBooks() []Book {
 	}
 }
 
-/**
- * TODO: Seperate Controller logic from API Logic in main.go
- * Only controller logic should be here, such as handling structs etc.
- */
-// API
-func GetBooks(c *gin.Context) {
-	books := GenerateSampleBooks()
-	c.JSON(http.StatusOK, books)
+// GetBooks handles retrieving all Books from the DB and returning them to the server context
+func GetBooks() []Book {
+	return GenerateSampleBooks()
 }
 
-func GetBook(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-
-	if err != nil {
-		c.Error(fmt.Errorf("Error converting id to int"))
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-	}
-
+// GetBook handles retrieving only the book with the corresponding id that matches the provided parameter
+func GetBook(id int) (Book, error) {
 	books := GenerateSampleBooks()
 
-	if len(books)-1 < id {
-		errorString := "Id provided is greater than book list"
-		c.Error(errors.New(errorString))
-		c.JSON(http.StatusNotFound, gin.H{"error": errorString})
-		return
+	if id < 0 {
+		return Book{}, errors.New("Invalid id provided")
 	}
 
-	c.JSON(http.StatusOK, books[id])
+	if len(books)-1 < id {
+		return Book{}, errors.New("Id provided is greater than book list")
+	}
+
+	return books[id], nil
 }

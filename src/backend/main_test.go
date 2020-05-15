@@ -12,10 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func setup() {
-
-}
-
 // Referencing https://medium.com/@craigchilds94/testing-gin-json-responses-1f258ce3b0b1
 func performRequest(r http.Handler, method, path string) *httptest.ResponseRecorder {
 	req, _ := http.NewRequest(method, path, nil)
