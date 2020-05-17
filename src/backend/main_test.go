@@ -20,6 +20,11 @@ func performRequest(r http.Handler, method, path string) *httptest.ResponseRecor
 	return w
 }
 
+type errResponse struct {
+	Error   string `json:"error"`
+	Context string `json:"context"`
+}
+
 func TestHelloWorld(t *testing.T) {
 	// Build our expected body
 	body := gin.H{
@@ -62,7 +67,7 @@ func TestBookCRUD(t *testing.T) {
 		assert.Equal(t, collection, response)
 	})
 
-	t.Run("GET By Valid Id", func(t *testing.T) {
+	t.Run("GET By Valid ID", func(t *testing.T) {
 		w := performRequest(router, "GET", "/book/0")
 		assert.Equal(t, http.StatusOK, w.Code)
 
@@ -73,23 +78,82 @@ func TestBookCRUD(t *testing.T) {
 		assert.Equal(t, collection[0], response)
 	})
 
-	t.Run("GET by Invalid Id", func(t *testing.T) {
+	t.Run("GET by Invalid ID", func(t *testing.T) {
 		w := performRequest(router, "GET", "/book/3")
 		assert.Equal(t, http.StatusNotFound, w.Code)
 
-		type errResponse struct {
-			Error   string `json:"error"`
-			Context string `json:"context"`
-		}
-
 		var response errResponse
 		var expectedMessage = errResponse{
-			Error: "Id provided is greater than book list",
+			Error: "Provided ID is greater than book list size",
 		}
 
 		err := json.Unmarshal([]byte(w.Body.String()), &response)
 
 		assert.Nil(t, err)
 		assert.Equal(t, expectedMessage, response)
+	})
+
+	t.Run("GET by Invalid Negative ID", func(t *testing.T) {
+		w := performRequest(router, "GET", "/book/-2")
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var response errResponse
+		var expectedMessage = errResponse{
+			Error: "Invalid ID provided",
+		}
+
+		err := json.Unmarshal([]byte(w.Body.String()), &response)
+
+		assert.Nil(t, err)
+		assert.Equal(t, expectedMessage, response)
+	})
+
+	t.Run("DELETE by valid ID", func(t *testing.T) {
+		w := performRequest(router, "DELETE", "/book/0")
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var response []controllers.Book
+		var expected = []controllers.Book{
+			{
+				ID:      1,
+				Name:    "Harry Potter and the Chamber of Secrets",
+				Release: 1998,
+			},
+		}
+
+		err := json.Unmarshal([]byte(w.Body.String()), &response)
+
+		assert.Nil(t, err)
+		assert.Equal(t, expected, response)
+	})
+
+	t.Run("DELETE by Invalid Negative ID", func(t *testing.T) {
+		w := performRequest(router, "DELETE", "/book/-1")
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var response errResponse
+		var expected = errResponse{
+			Error: "Invalid ID provided",
+		}
+
+		err := json.Unmarshal([]byte(w.Body.String()), &response)
+
+		assert.Nil(t, err)
+		assert.Equal(t, expected, response)
+	})
+
+	t.Run("DELETE by invalid ID", func(t *testing.T) {
+		w := performRequest(router, "DELETE", "/book/3")
+		assert.Equal(t, http.StatusNotFound, w.Code)
+
+		var response errResponse
+		var expected = errResponse{
+			Error: "Provided ID is greater than book list size",
+		}
+
+		err := json.Unmarshal([]byte(w.Body.String()), &response)
+
+		assert.Nil(t, err)
+		assert.Equal(t, expected, response)
 	})
 }

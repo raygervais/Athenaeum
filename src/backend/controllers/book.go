@@ -15,18 +15,23 @@ type Book struct {
 	Release int    `json:"release"`
 }
 
+const (
+	errorInvalidID = "Invalid ID provided"
+	errorGreaterID = "Provided ID is greater than book list size"
+)
+
 // TODO: Development Mock DB
 
 // GenerateSampleBooks returns an array of predefined Books for testing usecases.
 func GenerateSampleBooks() []Book {
 	return []Book{
 		{
-			ID:      1,
+			ID:      0,
 			Name:    "Harry Potter and the Sorcerers Stone",
 			Release: 1994,
 		},
 		{
-			ID:      2,
+			ID:      1,
 			Name:    "Harry Potter and the Chamber of Secrets",
 			Release: 1998,
 		},
@@ -42,13 +47,37 @@ func GetBooks() []Book {
 func GetBook(id int) (Book, error) {
 	books := GenerateSampleBooks()
 
-	if id < 0 {
-		return Book{}, errors.New("Invalid id provided")
-	}
-
-	if len(books)-1 < id {
-		return Book{}, errors.New("Id provided is greater than book list")
+	if err := BookIDResolver(id); err != nil {
+		return Book{}, err
 	}
 
 	return books[id], nil
+}
+
+// DeleteBook handles removing the book with the corresponding Id from the datasource
+func DeleteBook(id int) ([]Book, error) {
+	books := GenerateSampleBooks()
+
+	if err := BookIDResolver(id); err != nil {
+		return []Book{}, err
+	}
+
+	return append(books[:id], books[id+1:]...), nil
+}
+
+// NOTE: This is a helper function while DB is not implemented
+
+// BookIDResolver handles row length handling while we are using index as id (TEMP)
+func BookIDResolver(id int) error {
+	books := GenerateSampleBooks()
+
+	if id < 0 {
+		return errors.New(errorInvalidID)
+	}
+
+	if len(books)-1 < id {
+		return errors.New(errorGreaterID)
+	}
+
+	return nil
 }

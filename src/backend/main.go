@@ -2,7 +2,6 @@ package main
 
 import (
 	"Golang/Athenaeum/src/backend/controllers"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -16,7 +15,6 @@ func main() {
 
 // ErrorHandler provides basic error handling between the front-end and back-end
 func ErrorHandler(c *gin.Context, err error, status int) {
-	c.Error(fmt.Errorf(err.Error()))
 	c.JSON(status, gin.H{"error": err.Error()})
 }
 
@@ -34,6 +32,7 @@ func SetupRouter() *gin.Engine {
 	router.GET("/book/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, controllers.GetBooks())
 	})
+
 	router.GET("/book/:id", func(c *gin.Context) {
 		id, err := strconv.Atoi(c.Param("id"))
 
@@ -51,6 +50,24 @@ func SetupRouter() *gin.Engine {
 
 		c.JSON(http.StatusOK, book)
 
+	})
+
+	router.DELETE("/book/:id", func(c *gin.Context) {
+		id, err := strconv.Atoi(c.Param("id"))
+
+		if err != nil {
+			ErrorHandler(c, err, http.StatusInternalServerError)
+			return
+		}
+
+		books, err := controllers.DeleteBook(id)
+
+		if err != nil {
+			ErrorHandler(c, err, http.StatusNotFound)
+			return
+		}
+
+		c.JSON(http.StatusOK, books)
 	})
 
 	return router
