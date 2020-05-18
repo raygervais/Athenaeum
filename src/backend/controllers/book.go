@@ -1,83 +1,99 @@
-/*
-Package controllers/books implements Book object CRUD patterns.
-*/
-
 package controllers
 
 import (
-	"errors"
-)
+	"Golang/Athenaeum/src/backend/models"
+	"net/http"
 
-// Book struct for Milestone 2, to be replaced with far grander models
-type Book struct {
-	ID      int    `json:"id"`
-	Name    string `json:"name"`
-	Release int    `json:"release"`
-}
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+)
 
 const (
-	errorInvalidID = "Invalid ID provided"
-	errorGreaterID = "Provided ID is greater than book list size"
+	errRecordNotFound = "Record not found!"
 )
 
-// TODO: Development Mock DB
+// FindBooks called by GET /books
+// Get all books
+func FindBooks(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
 
-// GenerateSampleBooks returns an array of predefined Books for testing usecases.
-func GenerateSampleBooks() []Book {
-	return []Book{
-		{
-			ID:      0,
-			Name:    "Harry Potter and the Sorcerers Stone",
-			Release: 1994,
-		},
-		{
-			ID:      1,
-			Name:    "Harry Potter and the Chamber of Secrets",
-			Release: 1998,
-		},
-	}
+	var books []models.Book
+	db.Find(&books)
+
+	c.JSON(http.StatusOK, gin.H{"data": books})
 }
 
-// GetBooks handles retrieving all Books from the DB and returning them to the server context
-func GetBooks() []Book {
-	return GenerateSampleBooks()
+// CreateBook called by POST /books
+// Create new book
+func CreateBook(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
+
+	// Validate input
+	var input models.CreateBookInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Create book
+	book := models.Book{Title: input.Title, Author: input.Author}
+	db.Create(&book)
+
+	c.JSON(http.StatusOK, book)
 }
 
-// GetBook handles retrieving only the book with the corresponding id that matches the provided parameter
-func GetBook(id int) (Book, error) {
-	books := GenerateSampleBooks()
+// FindBook called by GET /books/:id
+// Find a book
+func FindBook(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
 
-	if err := BookIDResolver(id); err != nil {
-		return Book{}, err
+	// Get model if exist
+	var book models.Book
+	if err := db.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
 	}
 
-	return books[id], nil
+	c.JSON(http.StatusOK, book)
 }
 
-// DeleteBook handles removing the book with the corresponding Id from the datasource
-func DeleteBook(id int) ([]Book, error) {
-	books := GenerateSampleBooks()
+// UpdateBook called by PATCH /books/:id
+// Update a book
+func UpdateBook(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
 
-	if err := BookIDResolver(id); err != nil {
-		return []Book{}, err
+	// Get model if exist
+	var book models.Book
+	if err := db.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
 	}
 
-	return append(books[:id], books[id+1:]...), nil
+	// Validate input
+	var input models.UpdateBookInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	db.Model(&book).Updates(input)
+
+	c.JSON(http.StatusOK, book)
 }
 
-// NOTE: This is a helper function while DB is not implemented
+// DeleteBook called by DELETE /books/:id
+// Delete a book
+func DeleteBook(c *gin.Context) {
+	db := c.MustGet("db").(*gorm.DB)
 
-// BookIDResolver handles row length handling while we are using index as id (TEMP)
-func BookIDResolver(id int) error {
-	books := GenerateSampleBooks()
-
-	if id < 0 {
-		return errors.New(errorInvalidID)
+	// Get model if exist
+	var book models.Book
+	if err := db.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return
 	}
 
-	if len(books)-1 < id {
-		return errors.New(errorGreaterID)
-	}
+	db.Delete(&book)
 
-	return nil
+	c.JSON(http.StatusOK, gin.H{"data": true})
 }
