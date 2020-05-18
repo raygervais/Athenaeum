@@ -1,9 +1,16 @@
 package controllers
 
 import (
-	"errors"
+	"Golang/Athenaeum/src/backend/models"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
+	"github.com/stretchr/testify/assert"
 )
 
 func AssertExpected(t *testing.T, expected, received interface{}) {
@@ -12,61 +19,46 @@ func AssertExpected(t *testing.T, expected, received interface{}) {
 	}
 }
 
-func TestGetBooks(t *testing.T) {
-	expected := GenerateSampleBooks()
-	received := GetBooks()
+func SetupContext(db *gorm.DB) (*httptest.ResponseRecorder, *gin.Context) {
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Set("db", db)
 
-	AssertExpected(t, expected, received)
+	return w, c
 }
 
-func TestGetBookByID(t *testing.T) {
-	collection := GenerateSampleBooks()
+func TestCRUDFunctions(t *testing.T) {
+	db := models.SetupModels("../test.db")
 
-	t.Run("Get By Valid ID", func(t *testing.T) {
-		expected := collection[0]
-		received, _ := GetBook(0)
+	gin.SetMode(gin.TestMode)
 
-		AssertExpected(t, expected, received)
+	t.Run("Query Test DB", func(t *testing.T) {
+		w, c := SetupContext(db)
+
+		FindBooks(c)
+
+		AssertExpected(t, w.Code, http.StatusOK)
+		AssertExpected(t, len(w.Body.String()) > 0, true)
 	})
 
-	t.Run("Get by Invalid ID", func(t *testing.T) {
-		_, err := GetBook(1000000)
+	t.Run("Find Valid Book", func(t *testing.T) {
+		w, c := SetupContext(db)
 
-		AssertExpected(t, errors.New("Provided ID is greater than book list size"), err)
-	})
+		c.Params = []gin.Param{gin.Param{Key: "id", Value: "3"}}
 
-	t.Run("Get by Invalid Negative ID", func(t *testing.T) {
-		_, err := GetBook(-1)
+		FindBook(c)
 
-		AssertExpected(t, errors.New("Invalid ID provided"), err)
-	})
-}
+		expected := models.Book{
+			ID:     3,
+			Title:  "Harry Potter and The Prisoner of Azkaban",
+			Author: "J. K. Rowling",
+		}
 
-func TestDeleteBookByID(t *testing.T) {
-	var expected = []Book{
-		{
-			ID:      1,
-			Name:    "Harry Potter and the Chamber of Secrets",
-			Release: 1998,
-		},
-	}
+		var response models.Book
+		err := json.Unmarshal([]byte(w.Body.String()), &response)
 
-	t.Run("Delete By Valid ID", func(t *testing.T) {
-		booklist, err := DeleteBook(0)
-
-		AssertExpected(t, nil, err)
-		AssertExpected(t, expected, booklist)
-	})
-
-	t.Run("Delete by Invalid ID", func(t *testing.T) {
-		_, err := DeleteBook(3)
-
-		AssertExpected(t, errors.New("Provided ID is greater than book list size"), err)
-	})
-
-	t.Run("Get by Invalid Negative ID", func(t *testing.T) {
-		_, err := DeleteBook(-1)
-
-		AssertExpected(t, errors.New("Invalid ID provided"), err)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, http.StatusOK, w.Code)
+		AssertExpected(t, expected, response)
 	})
 }

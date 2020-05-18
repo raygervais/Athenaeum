@@ -20,7 +20,7 @@ func FindBooks(c *gin.Context) {
 	var books []models.Book
 	db.Find(&books)
 
-	c.JSON(http.StatusOK, gin.H{"data": books})
+	c.JSON(http.StatusOK, books)
 }
 
 // CreateBook called by POST /books
