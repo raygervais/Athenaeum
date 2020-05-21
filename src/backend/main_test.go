@@ -138,8 +138,7 @@ func TestBooksCRUD(t *testing.T) {
 
 	t.Run("Update Existing ID on Populated DB", func(t *testing.T) {
 		payload, _ := json.Marshal(models.UpdateBookInput{
-			Author: "J. K. Rowling",
-			Title:  "Harry Potter and The Gaslight Anthem",
+			Title: "Harry Potter and The Weird Sisters",
 		})
 
 		req, err := http.NewRequest("PATCH", "/books/6", bytes.NewReader(payload))
@@ -155,7 +154,7 @@ func TestBooksCRUD(t *testing.T) {
 	t.Run("Get Updated Book from Populated DB", func(t *testing.T) {
 		expected := models.Book{
 			Author: "J. K. Rowling",
-			Title:  "Harry Potter and The Gaslight Anthem",
+			Title:  "Harry Potter and The Weird Sisters",
 			ID:     6,
 		}
 
