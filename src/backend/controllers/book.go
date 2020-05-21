@@ -12,6 +12,16 @@ const (
 	errRecordNotFound = "Record not found!"
 )
 
+// RetrieveBookByID is a helper function which returns a boolean based on success to find book
+func RetrieveBookByID(db *gorm.DB, c *gin.Context, book *models.Book) bool {
+	if err := db.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+		return false
+	}
+
+	return true
+}
+
 // FindBooks called by GET /books
 // Get all books
 func FindBooks(c *gin.Context) {
@@ -49,8 +59,8 @@ func FindBook(c *gin.Context) {
 
 	// Get model if exist
 	var book models.Book
-	if err := db.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+
+	if !RetrieveBookByID(db, c, &book) {
 		return
 	}
 
@@ -64,8 +74,7 @@ func UpdateBook(c *gin.Context) {
 
 	// Get model if exist
 	var book models.Book
-	if err := db.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+	if !RetrieveBookByID(db, c, &book) {
 		return
 	}
 
@@ -88,8 +97,7 @@ func DeleteBook(c *gin.Context) {
 
 	// Get model if exist
 	var book models.Book
-	if err := db.Where("id = ?", c.Param("id")).First(&book).Error; err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Record not found!"})
+	if !RetrieveBookByID(db, c, &book) {
 		return
 	}
 

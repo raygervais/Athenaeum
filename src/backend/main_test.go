@@ -28,6 +28,7 @@ func TestHelloWorld(t *testing.T) {
 
 	router, db := SetupRouter("test.db")
 	defer db.Close()
+
 	w := performRequest(router, "GET", "/")
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -83,7 +84,7 @@ func TestBooksCRUD(t *testing.T) {
 				Title:  book,
 			})
 
-			req, err := http.NewRequest("POST", "/books", bytes.NewReader(payload))
+			req, err := http.NewRequest("POST", "/books/", bytes.NewReader(payload))
 			req.Header.Set("Content-Type", "application/json")
 
 			w := httptest.NewRecorder()

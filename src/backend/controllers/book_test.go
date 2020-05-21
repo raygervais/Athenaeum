@@ -29,6 +29,15 @@ func SetupContext(db *gorm.DB) (*httptest.ResponseRecorder, *gin.Context) {
 	return w, c
 }
 
+func SetupRequestBody(c *gin.Context, payload interface{}) {
+	reqBodyBytes := new(bytes.Buffer)
+	json.NewEncoder(reqBodyBytes).Encode(payload)
+
+	c.Request = &http.Request{
+		Body: ioutil.NopCloser(bytes.NewBuffer(reqBodyBytes.Bytes())),
+	}
+}
+
 func TestCRUDFunctions(t *testing.T) {
 	db := models.SetupModels("../test.db")
 
@@ -46,13 +55,13 @@ func TestCRUDFunctions(t *testing.T) {
 	t.Run("Find Valid Book", func(t *testing.T) {
 		w, c := SetupContext(db)
 
-		c.Params = []gin.Param{gin.Param{Key: "id", Value: "3"}}
+		c.Params = []gin.Param{gin.Param{Key: "id", Value: "2"}}
 
 		FindBook(c)
 
 		expected := models.Book{
-			ID:     3,
-			Title:  "Harry Potter and The Prisoner of Azkaban",
+			ID:     2,
+			Title:  "Harry Potter and The Chamber of Secrets",
 			Author: "J. K. Rowling",
 		}
 
@@ -85,12 +94,8 @@ func TestCRUDFunctions(t *testing.T) {
 			Title:  "Harry Potter and the Weird Sisters",
 			Author: "J. K. Rowling",
 		}
-		reqBodyBytes := new(bytes.Buffer)
-		json.NewEncoder(reqBodyBytes).Encode(payload)
 
-		c.Request = &http.Request{
-			Body: ioutil.NopCloser(bytes.NewBuffer(reqBodyBytes.Bytes())),
-		}
+		SetupRequestBody(c, payload)
 
 		CreateBook(c)
 
@@ -103,7 +108,120 @@ func TestCRUDFunctions(t *testing.T) {
 		assert.Equal(t, payload.Title, response.Title)
 	})
 
-	t.Run("Fail to Create Invalid Book", func(t *testing.T) {
+	t.Run("Create Invalid Book With Missing Author", func(t *testing.T) {
+		w, c := SetupContext(db)
 
+		payload := models.Book{
+			Title: "Harry Potter and the Sad Sisters",
+		}
+
+		SetupRequestBody(c, payload)
+
+		CreateBook(c)
+
+		assert.Equal(t, 400, w.Code)
+		assert.Equal(t, "{\"error\":\"Key: 'CreateBookInput.Author' Error:Field validation for 'Author' failed on the 'required' tag\"}", w.Body.String())
+	})
+
+	t.Run("Create Invalid Book With Missing Title", func(t *testing.T) {
+		w, c := SetupContext(db)
+
+		payload := models.Book{
+			Author: "J. K. Rowling",
+		}
+
+		SetupRequestBody(c, payload)
+
+		CreateBook(c)
+
+		assert.Equal(t, 400, w.Code)
+		assert.Equal(t, "{\"error\":\"Key: 'CreateBookInput.Title' Error:Field validation for 'Title' failed on the 'required' tag\"}", w.Body.String())
+	})
+
+	t.Run("Create Invalid Book With Missing Fields", func(t *testing.T) {
+		w, c := SetupContext(db)
+
+		payload := models.Book{}
+
+		SetupRequestBody(c, payload)
+
+		CreateBook(c)
+
+		assert.Equal(t, 400, w.Code)
+		assert.Equal(t, "{\"error\":\"Key: 'CreateBookInput.Title' Error:Field validation for 'Title' failed on the 'required' tag\\nKey: 'CreateBookInput.Author' Error:Field validation for 'Author' failed on the 'required' tag\"}", w.Body.String())
+	})
+
+	t.Run("Update Valid Book", func(t *testing.T) {
+		w, c := SetupContext(db)
+
+		payload := models.CreateBookInput{
+			Title: "Hermione Granger and The Wibbly Wobbly Timey Wimey Escape",
+		}
+
+		SetupRequestBody(c, payload)
+		c.Params = []gin.Param{gin.Param{Key: "id", Value: "3"}}
+
+		UpdateBook(c)
+
+		var response models.Book
+		err := json.Unmarshal([]byte(w.Body.String()), &response)
+
+		assert.Equal(t, 200, w.Code)
+		assert.Equal(t, nil, err)
+		assert.Equal(t, payload.Title, response.Title)
+	})
+
+	t.Run("Update Invalid Format", func(t *testing.T) {
+		w, c := SetupContext(db)
+
+		payload, _ := json.Marshal(map[int]string{
+			2: "Harry Potter",
+			3: "JK Rowling",
+			4: "22",
+		})
+
+		SetupRequestBody(c, payload)
+		c.Params = []gin.Param{gin.Param{Key: "id", Value: "3"}}
+
+		UpdateBook(c)
+
+		assert.Equal(t, 400, w.Code)
+		assert.Equal(t, "{\"error\":\"json: cannot unmarshal string into Go value of type models.UpdateBookInput\"}", w.Body.String())
+	})
+
+	t.Run("Update Invalid Book ID", func(t *testing.T) {
+		w, c := SetupContext(db)
+
+		payload := models.CreateBookInput{
+			Title: "Hermione Granger and The Wibbly Wobbly Timey Wimey Escape",
+		}
+
+		SetupRequestBody(c, payload)
+		c.Params = []gin.Param{gin.Param{Key: "id", Value: "-3"}}
+
+		UpdateBook(c)
+
+		assert.Equal(t, 400, w.Code)
+		assert.Equal(t, "{\"error\":\"Record not found!\"}", w.Body.String())
+	})
+
+	t.Run("Delete Valid Book ID", func(t *testing.T) {
+		w, c := SetupContext(db)
+		c.Params = []gin.Param{gin.Param{Key: "id", Value: "5"}}
+
+		DeleteBook(c)
+
+		assert.Equal(t, 200, w.Code)
+		assert.Equal(t, "{\"data\":true}", w.Body.String())
+	})
+
+	t.Run("Delete Invalid Book ID", func(t *testing.T) {
+		w, c := SetupContext(db)
+		c.Params = []gin.Param{gin.Param{Key: "id", Value: "-2"}}
+
+		DeleteBook(c)
+
+		assert.Equal(t, 400, w.Code)
+		assert.Equal(t, "{\"error\":\"Record not found!\"}", w.Body.String())
 	})
 }
