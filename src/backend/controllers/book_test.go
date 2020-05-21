@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"Golang/Athenaeum/src/backend/models"
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -58,7 +60,50 @@ func TestCRUDFunctions(t *testing.T) {
 		err := json.Unmarshal([]byte(w.Body.String()), &response)
 
 		assert.Equal(t, nil, err)
-		assert.Equal(t, http.StatusOK, w.Code)
+
 		AssertExpected(t, expected, response)
+	})
+
+	t.Run("Find Invalid Book ID", func(t *testing.T) {
+		w, c := SetupContext(db)
+
+		c.Params = []gin.Param{gin.Param{Key: "id", Value: "-2"}}
+
+		FindBook(c)
+
+		expected := "{\"error\":\"Record not found!\"}"
+
+		assert.Equal(t, 400, w.Code)
+		assert.Equal(t, expected, w.Body.String())
+
+	})
+
+	t.Run("Create Valid Book", func(t *testing.T) {
+		w, c := SetupContext(db)
+
+		payload := models.Book{
+			Title:  "Harry Potter and the Weird Sisters",
+			Author: "J. K. Rowling",
+		}
+		reqBodyBytes := new(bytes.Buffer)
+		json.NewEncoder(reqBodyBytes).Encode(payload)
+
+		c.Request = &http.Request{
+			Body: ioutil.NopCloser(bytes.NewBuffer(reqBodyBytes.Bytes())),
+		}
+
+		CreateBook(c)
+
+		var response models.Book
+		err := json.Unmarshal([]byte(w.Body.String()), &response)
+
+		assert.Equal(t, nil, err)
+		assert.Equal(t, 200, w.Code)
+		assert.Equal(t, payload.Author, response.Author)
+		assert.Equal(t, payload.Title, response.Title)
+	})
+
+	t.Run("Fail to Create Invalid Book", func(t *testing.T) {
+
 	})
 }
