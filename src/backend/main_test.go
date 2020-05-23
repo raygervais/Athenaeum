@@ -42,15 +42,15 @@ func TestHelloWorld(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, exists)
 	assert.Equal(t, body["message"], value)
-
 }
 
 func TestBooksCRUD(t *testing.T) {
 	dbTarget := "test.db"
+
 	router, db := SetupRouter(dbTarget)
+
 	db.DropTableIfExists(&models.Book{}, "books")
 	db = models.SetupModels(dbTarget)
-
 	defer db.Close()
 
 	t.Run("Create Empty DB", func(t *testing.T) {
@@ -186,4 +186,100 @@ func TestBooksCRUD(t *testing.T) {
 		assert.Equal(t, "{\"data\":true}", w.Body.String())
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
+}
+
+func TestCollectionsCRUD(t *testing.T) {
+
+	// Book Collection Setup
+	bookTitles := []string{
+		"Eragon",
+		"Eldest",
+		"Brisingr",
+		"Inheritance",
+	}
+
+	bookList := []models.Book{}
+
+	for i, book := range bookTitles {
+		bookList = append(bookList, models.Book{
+			Author: "Christopher Paolini",
+			ID:     uint(i),
+			Title:  book,
+		})
+	}
+
+	dbTarget := "test.db"
+
+	router, db := SetupRouter(dbTarget)
+
+	db.DropTableIfExists(&models.Book{}, "collections")
+	db = models.SetupModels(dbTarget)
+
+	defer db.Close()
+
+	t.Run("Read From Empty DB", func(t *testing.T) {
+		w := performRequest(router, "GET", "/collections/")
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("Retrieve Nonexistent ID From Empty DB", func(t *testing.T) {
+
+		w := performRequest(router, "GET", "/collections/2")
+
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+
+	t.Run("Populate DB with The Inheritance Cycle Collection", func(t *testing.T) {
+
+		payload, _ := json.Marshal(models.CreateCollectionInput{
+			Title:       "The Inheritance Cycle",
+			Description: "The Inheritance Cycle is a tetralogy of young adult high fantasy novels written by American author Christopher Paolini.",
+			Books:       bookList,
+		})
+
+		req, err := http.NewRequest("POST", "/collections/", bytes.NewReader(payload))
+		req.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, nil, err)
+		assert.Equal(t, http.StatusOK, w.Code)
+	})
+
+	t.Run("Retrieve Existing ID From Populated DB", func(t *testing.T) {
+		w := performRequest(router, "GET", "/collections/1")
+
+		expected := models.Collection{
+			Title:       "The Inheritance Cycle",
+			Description: "The Inheritance Cycle is a tetralogy of young adult high fantasy novels written by American author Christopher Paolini.",
+			Books:       bookList,
+		}
+
+		var response models.Collection
+		err := json.Unmarshal([]byte(w.Body.String()), &response)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, expected, response)
+	})
+
+	t.Run("Attempt Updating Non-Existing ID", func(t *testing.T) {
+		w := performRequest(router, "PATCH", "/collections/-2")
+
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.Equal(t, "{\"error\":\"Record not found!\"}", w.Body.String())
+	})
+
+	t.Run("Delete Invalid Collection from Populated DB", func(t *testing.T) {
+		w := performRequest(router, "DELETE", "/collections/-1")
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Delete Without ID Collection from Populated DB", func(t *testing.T) {
+		w := performRequest(router, "DELETE", "/collections/")
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Equal(t, "404 page not found", w.Body.String())
+	})
+
 }

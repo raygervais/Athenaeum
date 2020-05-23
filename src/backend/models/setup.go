@@ -14,6 +14,7 @@ func SetupModels(dbTarget string) *gorm.DB {
 	}
 
 	db.AutoMigrate(&Book{})
+	db.AutoMigrate(&Collection{})
 
 	return db
 }

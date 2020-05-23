@@ -42,5 +42,10 @@ func SetupRouter(dbTarget string) (*gin.Engine, *gorm.DB) {
 	router.PATCH("/books/:id", controllers.UpdateBook)
 	router.DELETE("/books/:id", controllers.DeleteBook)
 
+	router.GET("/collections/", controllers.FindCollections)
+	router.POST("/collections/", controllers.CreateCollection)
+	router.GET("/collections/:id", controllers.FindCollection)
+	router.PATCH("/collections/:id", controllers.UpdateCollection)
+	router.DELETE("/collections/:id", controllers.DeleteCollection)
 	return router, db
 }
