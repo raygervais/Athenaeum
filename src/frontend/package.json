@@ -8,9 +8,11 @@
     "@testing-library/user-event": "^7.2.1",
     "eslint": "^6.8.0",
     "eslint-plugin-react": "^7.19.0",
+    "fomantic-ui-css": "^2.8.5",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
-    "react-scripts": "3.4.1"
+    "react-scripts": "3.4.1",
+    "semantic-ui-react": "^0.88.2"
   },
   "scripts": {
     "start": "react-scripts start",
