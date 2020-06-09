@@ -13,6 +13,7 @@ type CreateCollectionInput struct {
 	Title       string `json:"title" binding:"required"`
 	Description string `json:"description" binding:"required"`
 	Books       []Book `json:"books" gorm:"foreignkey:BookID`
+	// Books       []int `json:"books" gorm:"foreignkey:BookID`
 }
 
 // UpdateCollectionInput is the JSON binding validation handler
