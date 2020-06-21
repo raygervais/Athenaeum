@@ -1,19 +1,16 @@
-/* Import statements */
-import React from "react";
-import ReactDOM from "react-dom";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import App from './App';
+import './index.css';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 
-/* App is the entry point to the React code.*/
-import App from "./App";
-
-/* import BrowserRouter from 'react-router-dom' */
-import { BrowserRouter } from "react-router-dom";
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
-  <BrowserRouter>
-    <App />
-  </BrowserRouter>,
-  document.getElementById("root")
+  <Router  >
+    <Route path="/" component={App} />
+  </Router>,
+  document.getElementById('root')
 );
 
 

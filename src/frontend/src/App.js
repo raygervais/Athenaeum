@@ -4,7 +4,6 @@ import 'fomantic-ui-css/semantic.css';
 import {
   Container,
   Grid,
-  Segment,
   Header,
   Image,
   Menu,
@@ -13,7 +12,7 @@ import {
   Item
 } from 'semantic-ui-react'
 import './App.css';
-import { Link, Route, Switch } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
 const filterOptions = [
@@ -28,72 +27,78 @@ const filterOptions = [
 const style = {
   h1: {
     marginTop: '3em',
-  },
-  h2: {
-    margin: '4em 0em 2em',
-  },
-  h3: {
-    marginTop: '2em',
-    padding: '2em 0em',
-  },
-  last: {
-    marginBottom: '300px',
+    marginBottom: '0'
   },
   borderless: {
     border: 'none',
     boxShadow: 'none'
   },
-  // NOTE: I hate CSS.
   inputWidth: {
-    width: '72%'
+    minWidth: '72%'
   }
 }
 
+// NOTE: For Layout Mockup, all data to be replaced with API call to backend.
 const trendingBooks = [
   {
     title: "Eragon",
     cover: "https://upload.wikimedia.org/wikipedia/en/c/ce/Eragon_book_cover.png",
     author: "Christopher Paolini",
+    description: "Eragon is the first book in The Inheritance Cycle by American fantasy writer Christopher Paolini. Paolini, born in 1983, wrote the novel while still in his teens. After writing the first draft for a year, Paolini spent a second year rewriting and fleshing out the story and characters."
   },
   {
     title: "Eldest",
     cover: "https://upload.wikimedia.org/wikipedia/en/e/e0/Eldest_book_cover.png",
     author: "Christopher Paolini",
+    description: "Eldest is the second novel in the Inheritance Cycle by Christopher Paolini and the sequel to Eragon. Eldest was first published in hardcover on August 23, 2005, and was released in paperback in September 2006. Eldest has been released in an audiobook format, and as an ebook. Wikipedia"
   },
   {
     title: "Brisingr",
     cover: "https://upload.wikimedia.org/wikipedia/en/7/70/Brisingr_book_cover.png",
     author: "Christopher Paolini",
+    description: "Brisingr is the third novel in the Inheritance Cycle by Christopher Paolini. It was released on September 20, 2008. Originally, Paolini intended to conclude the then Inheritance Trilogy in three books, but during writing the third book he decided that the series was too complex to conclude in one book, because the single book would be close to 1,500 pages long."
   },
   {
     title: "Inheritance ",
     cover: "https://upload.wikimedia.org/wikipedia/en/2/2b/Inheritance2011.JPG",
     author: "Christopher Paolini",
+    description: "The Inheritance Cycle was originally intended to be a trilogy, but Paolini has stated that during writing, the length of Brisingr grew, and the book was split into two parts to be published separately. Because of this, many plot elements originally intended for Brisingr are in Inheritance."
   }
 ]
 
 const FixedNavigationMenu = () => (
-  <div>
-    <Menu fixed='top' inverted>
-      <Container>
-        <Menu.Item header position="left">
-          <Image size='mini' src='/logo.png' style={{ marginRight: '1.5em' }} />
-          <Link to="/">Athenaeum</Link>
-        </Menu.Item>
+  <Container>
+    <Menu fixed='top' size="massive" borderless>
+      <Menu.Item header position="left">
+        <Image size='mini' src='/logo.png' style={{ marginRight: '1.5em' }} />
+        <Link to="/">Athenaeum</Link>
+      </Menu.Item>
 
-        <Menu position="right" inverted>
-          <Menu.Item position='right' ><Link to="/book">Book</Link></Menu.Item>
-          <Menu.Item position='right' ><Link to="/collection">Collections</Link></Menu.Item>
-        </Menu>
-      </Container>
+      <Menu position="right" size="massive" secondary>
+        <Menu.Item><Link to="/about">About</Link></Menu.Item>
+        <Dropdown item text="Books">
+          <Dropdown.Menu>
+            <Dropdown.Item><Link to="/book/recommended">Recommend</Link></Dropdown.Item>
+            <Dropdown.Item><Link to="/book/collection">Collection</Link></Dropdown.Item>
+            <Dropdown.Item><Link to="/book/search">Search</Link></Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+        <Dropdown item text="Account">
+          <Dropdown.Menu>
+            <Dropdown.Item><Link to="/login">Login</Link></Dropdown.Item>
+            <Dropdown.Item><Link to="/signup">Signup</Link></Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+      </Menu>
     </Menu>
-  </div >
+  </Container>
 );
 
+
 // TODO: Make all items below into Home Component
-const FilterSearchBar = () => (
+export const FilterSearchBar = () => (
   <Container>
-    <Menu secondary stackable>
+    <Menu secondary stackable size="massive">
       <Menu.Item header>Filter By:</Menu.Item>
       <Menu.Item>
         <Dropdown
@@ -105,25 +110,14 @@ const FilterSearchBar = () => (
       </Menu.Item>
       <Menu.Item style={style.inputWidth}>
         <Input
-          action={{ type: 'submit', content: 'Go' }}
-          placeholder='Search'
+          action={{ type: 'submit', content: 'Search' }}
+          placeholder='Brisingr'
         />
       </Menu.Item>
 
     </Menu>
   </Container >
 )
-
-const HomeHeaderComponent = () => (
-  <header className="App-header">
-    <Container>
-      <Header className="yellow">
-        Athenaeum
-    </Header>
-    </Container>
-  </header>
-)
-
 
 export default function App() {
   return (
@@ -133,7 +127,7 @@ export default function App() {
 
       <Header
         as='h1'
-        content='What We Currently Love'
+        content='What We Currently Love: The Inheritance Cycle'
         style={style.h1}
         textAlign='center'
       />
@@ -143,16 +137,17 @@ export default function App() {
       <br />
       <br />
 
-      <Grid container columns={3} stackable>
+      <Grid container columns={2} stackable>
 
         {trendingBooks.map((book, index) => (
-          <Grid.Column width={8}>
+          <Grid.Column width={8} key={index}>
             <Item.Group link>
               <Item key={index}>
-                <Item.Image size="medium" src={book.cover}></Item.Image>
+                <Item.Image size="small" src={book.cover}></Item.Image>
                 <Item.Content>
                   <Item.Header>{book.title}</Item.Header>
                   <h4>{book.author}</h4>
+                  <p>{book.description}</p>
                 </Item.Content>
               </Item>
             </Item.Group>
@@ -161,13 +156,8 @@ export default function App() {
         )}
 
       </Grid>
-
-
-      <Switch>
-        {/* <Route exact path="/" component={HomeHeaderComponent} /> */}
-        {/* <Route path="/collection" component={} /> */}
-      </Switch>
     </div>
+
   );
 }
 
