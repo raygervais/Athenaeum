@@ -78,7 +78,7 @@ func UpdateCollection(c *gin.Context) {
 	}
 
 	// Validate input
-	var input models.UpdateBookInput
+	var input models.UpdateCollectionInput
 	if err := c.ShouldBindJSON(&input); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
