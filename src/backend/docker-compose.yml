@@ -1,0 +1,22 @@
+version: "3.7"
+
+volumes:
+  backendvolume:
+    name: backend-volume
+
+networks:
+  backendnetwork:
+    name: backend-network
+
+services:
+  backend_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./:/app
+    ports:
+      - 8000:8000
+    networks:
+      - backendnetwork
+    entrypoint: ["/bin/sh", "./scripts/compile.sh"]

@@ -1,7 +1,7 @@
-FROM golang:alpine AS builder
+FROM golang:1.14
 
 # Set necessary environment variables needed for our image
-ENV GO111MODULE=on \
+RUN export GO111MODULE=on \
     CGO_ENABLED=0 \
     GOOS=linux \
     GOARCH=amd64
@@ -10,30 +10,10 @@ ENV GO111MODULE=on \
 WORKDIR /build
 
 # Copy and download dependency using go mod
-COPY go.mod .
-COPY go.sum .
+COPY ./go.mod ./go.sum ./
 RUN go mod download
 
 # Copy the code into the container
 COPY . .
 
-# Build the application
-RUN go build -o main .
-
-# Test application
-RUN go test
-
-# Move to /dist directory as the place for resulting binary folder
-WORKDIR /dist
-
-# Copy binary from build to main folder
-RUN cp /build/main .
-
-# Build a small image
-FROM alpine:3.11
-
-COPY --from=builder /dist/main /
-EXPOSE 3000
-
-# Command to run
-ENTRYPOINT ["/main"]
+EXPOSE 8000
