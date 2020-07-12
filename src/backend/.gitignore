@@ -19,6 +19,9 @@ _obj
 _test
 _testmain.go
 
+*.db
+.sum
+
 /VERSION.cache
 /bin/
 /build.out
@@ -28,7 +31,6 @@ _testmain.go
 /misc/cgo/life/run.out
 /misc/cgo/stdio/run.out
 /misc/cgo/testso/main
-/pkg/
 /src/cmd/cgo/zdefaultcc.go
 /src/cmd/dist/dist
 /src/cmd/go/internal/cfg/zdefaultcc.go
