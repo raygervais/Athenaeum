@@ -19,6 +19,9 @@ _obj
 _test
 _testmain.go
 
+*.db
+.sum
+
 /VERSION.cache
 /bin/
 /build.out

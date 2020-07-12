@@ -48,7 +48,7 @@ func FindBook(app *application.Application) gin.HandlerFunc {
 		// Get model if exist
 		var book models.Book
 
-		if !RetrieveBookByID(db, c, &book) {
+		if !RetrieveBookByID(app.Database.Client, c, &book) {
 			return
 		}
 
@@ -63,7 +63,7 @@ func UpdateBook(app *application.Application) gin.HandlerFunc {
 
 		// Get model if exist
 		var book models.Book
-		if !RetrieveBookByID(db, c, &book) {
+		if !RetrieveBookByID(app.Database.Client, c, &book) {
 			return
 		}
 
@@ -88,7 +88,7 @@ func DeleteBook(app *application.Application) gin.HandlerFunc {
 
 		// Get model if exist
 		var book models.Book
-		if !RetrieveBookByID(db, c, &book) {
+		if !RetrieveBookByID(app.Database.Client, c, &book) {
 			return
 		}
 
